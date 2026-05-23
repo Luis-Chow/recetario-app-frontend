@@ -16,7 +16,7 @@ export default function RecipeListScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute<RouteProp<RouteParams, 'RecipeList'>>();
   const personal = route.params?.personal ?? false;
-  const { recipes, deleteRecipe } = useData();
+  const { recipes, groups, deleteRecipe } = useData();
   const { user } = useAuth();
   const [search, setSearch] = React.useState('');
 
@@ -35,7 +35,9 @@ export default function RecipeListScreen() {
     ]);
   };
 
-  const renderItem = ({ item }: { item: Recipe }) => (
+  const renderItem = ({ item }: { item: Recipe }) => {
+    const itemGroups = groups.filter(g => (item.groupIds || []).includes(g.id));
+    return (
     <TouchableOpacity
       style={styles.card}
       onPress={() => navigation.navigate('RecipeDetail', { recipeId: item.id })}
@@ -50,6 +52,18 @@ export default function RecipeListScreen() {
             <Text style={styles.tag}>🍴 {item.servings} porciones</Text>
             {!item.isPublic && <Text style={[styles.tag, styles.privateTag]}>🔒 Privada</Text>}
           </View>
+          {itemGroups.length > 0 && (
+            <View style={styles.groupsRow}>
+              {itemGroups.slice(0, 3).map(g => (
+                <View key={g.id} style={[styles.groupPill, { backgroundColor: g.color }]}>
+                  <Text style={styles.groupPillText} numberOfLines={1}>{g.name}</Text>
+                </View>
+              ))}
+              {itemGroups.length > 3 && (
+                <Text style={styles.moreGroups}>+{itemGroups.length - 3}</Text>
+              )}
+            </View>
+          )}
         </View>
       </View>
       {item.userId === user?.id && (
@@ -63,7 +77,8 @@ export default function RecipeListScreen() {
         </View>
       )}
     </TouchableOpacity>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -126,6 +141,10 @@ const styles = StyleSheet.create({
   tags: { flexDirection: 'row', gap: 8, marginTop: 6, flexWrap: 'wrap' },
   tag: { color: '#D1D5DB', fontSize: 11, backgroundColor: '#374151', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   privateTag: { backgroundColor: '#4B2020', color: '#FCA5A5' },
+  groupsRow: { flexDirection: 'row', gap: 4, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' },
+  groupPill: { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2, maxWidth: 100 },
+  groupPillText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  moreGroups: { color: '#9CA3AF', fontSize: 11, fontWeight: '600' },
   actions: { gap: 8 },
   actionBtn: { fontSize: 20, padding: 4 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },

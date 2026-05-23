@@ -22,6 +22,16 @@ export interface Recipe {
   prepTime: number;
   servings: number;
   isPublic: boolean;
+  groupIds: string[];
+  createdAt: string;
+}
+
+export interface Group {
+  id: string;
+  userId: string;
+  name: string;
+  description: string;
+  color: string;
   createdAt: string;
 }
 
@@ -34,5 +44,6 @@ export type RootStackParamList = {
 export type MainTabParamList = {
   AllRecipes: undefined;
   MyRecipes: undefined;
+  Groups: undefined;
   Profile: undefined;
 };

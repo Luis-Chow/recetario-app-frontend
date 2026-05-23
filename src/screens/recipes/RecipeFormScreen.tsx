@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, Switch,
@@ -17,7 +17,7 @@ export default function RecipeFormScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute<RouteProp<RouteParams, 'RecipeForm'>>();
   const { recipeId } = route.params ?? {};
-  const { recipes, addRecipe, updateRecipe } = useData();
+  const { recipes, groups, addRecipe, updateRecipe } = useData();
   const { user } = useAuth();
   const editing = !!recipeId;
   const existing = editing ? recipes.find(r => r.id === recipeId) : undefined;
@@ -31,8 +31,20 @@ export default function RecipeFormScreen() {
     existing?.ingredients || [{ name: '', quantity: '', unit: '' }]
   );
   const [steps, setSteps] = useState<string[]>(existing?.steps || ['']);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(existing?.groupIds || []);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+
+  const userGroups = useMemo(
+    () => groups.filter(g => g.userId === user?.id).sort((a, b) => a.name.localeCompare(b.name)),
+    [groups, user]
+  );
+
+  const toggleGroup = (groupId: string) => {
+    setSelectedGroupIds(prev =>
+      prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId]
+    );
+  };
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -57,6 +69,7 @@ export default function RecipeFormScreen() {
       isPublic,
       ingredients: ingredients.filter(i => i.name.trim()),
       steps: steps.filter(s => s.trim()),
+      groupIds: selectedGroupIds,
     };
     if (editing && recipeId) {
       await updateRecipe(recipeId, data);
@@ -112,6 +125,36 @@ export default function RecipeFormScreen() {
               <Text style={styles.switchLabel}>Receta pública</Text>
               <Switch value={isPublic} onValueChange={setIsPublic} trackColor={{ true: '#E8735A' }} />
             </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📁 Grupos</Text>
+            {userGroups.length === 0 ? (
+              <Text style={styles.helperText}>
+                Aún no tienes grupos. Crea grupos desde la pestaña "Grupos" para organizar tus recetas.
+              </Text>
+            ) : (
+              <View style={styles.groupsWrap}>
+                {userGroups.map(g => {
+                  const selected = selectedGroupIds.includes(g.id);
+                  return (
+                    <TouchableOpacity
+                      key={g.id}
+                      style={[
+                        styles.groupChip,
+                        selected && { backgroundColor: g.color, borderColor: g.color },
+                      ]}
+                      onPress={() => toggleGroup(g.id)}
+                    >
+                      <View style={[styles.groupDot, { backgroundColor: selected ? '#fff' : g.color }]} />
+                      <Text style={[styles.groupChipText, selected && { color: '#fff' }]}>
+                        {g.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
           </View>
 
           <View style={styles.section}>
@@ -190,6 +233,15 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 12 },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 4 },
   switchLabel: { color: '#D1D5DB', fontSize: 14, fontWeight: '600' },
+  helperText: { color: '#9CA3AF', fontSize: 13, fontStyle: 'italic' },
+  groupsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  groupChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    borderWidth: 1, borderColor: '#374151', backgroundColor: '#374151',
+    borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8,
+  },
+  groupDot: { width: 10, height: 10, borderRadius: 5 },
+  groupChipText: { color: '#D1D5DB', fontSize: 13, fontWeight: '600' },
   ingredientRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 4 },
   stepRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', marginBottom: 4 },
   stepNum: {

@@ -7,6 +7,9 @@ import { MainTabParamList } from '../types';
 import RecipeListScreen from '../screens/recipes/RecipeListScreen';
 import RecipeDetailScreen from '../screens/recipes/RecipeDetailScreen';
 import RecipeFormScreen from '../screens/recipes/RecipeFormScreen';
+import GroupListScreen from '../screens/groups/GroupListScreen';
+import GroupDetailScreen from '../screens/groups/GroupDetailScreen';
+import GroupFormScreen from '../screens/groups/GroupFormScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -35,6 +38,18 @@ function MyRecipesStack() {
   );
 }
 
+function GroupsStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="GroupList" component={GroupListScreen} />
+      <Stack.Screen name="GroupDetail" component={GroupDetailScreen} />
+      <Stack.Screen name="GroupForm" component={GroupFormScreen} />
+      <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
+      <Stack.Screen name="RecipeForm" component={RecipeFormScreen} />
+    </Stack.Navigator>
+  );
+}
+
 export default function MainNavigator() {
   return (
     <Tab.Navigator
@@ -48,6 +63,7 @@ export default function MainNavigator() {
           const icons: Record<string, string> = {
             AllRecipes: '🌍',
             MyRecipes: '👨‍🍳',
+            Groups: '📁',
             Profile: '👤',
           };
           return <Text style={{ fontSize: size - 4 }}>{icons[route.name]}</Text>;
@@ -56,6 +72,7 @@ export default function MainNavigator() {
     >
       <Tab.Screen name="AllRecipes" component={AllRecipesStack} options={{ tabBarLabel: 'Todas' }} />
       <Tab.Screen name="MyRecipes" component={MyRecipesStack} options={{ tabBarLabel: 'Mis Recetas' }} />
+      <Tab.Screen name="Groups" component={GroupsStack} options={{ tabBarLabel: 'Grupos' }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Perfil' }} />
     </Tab.Navigator>
   );

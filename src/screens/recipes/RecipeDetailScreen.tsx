@@ -14,10 +14,13 @@ export default function RecipeDetailScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute<RouteProp<RouteParams, 'RecipeDetail'>>();
   const { recipeId } = route.params;
-  const { recipes, deleteRecipe } = useData();
+  const { recipes, groups, deleteRecipe } = useData();
   const { user } = useAuth();
 
   const recipe = recipes.find(r => r.id === recipeId);
+  const recipeGroups = recipe
+    ? groups.filter(g => (recipe.groupIds || []).includes(g.id))
+    : [];
   if (!recipe) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -84,6 +87,22 @@ export default function RecipeDetailScreen() {
           </View>
         </View>
 
+        {recipeGroups.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📁 Grupos</Text>
+            <View style={styles.groupsWrap}>
+              {recipeGroups.map(g => (
+                <View
+                  key={g.id}
+                  style={[styles.groupChip, { backgroundColor: g.color }]}
+                >
+                  <Text style={styles.groupChipText}>{g.name}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🛒 Ingredientes</Text>
           {recipe.ingredients.map((ing, i) => (
@@ -144,4 +163,7 @@ const styles = StyleSheet.create({
   },
   stepNumText: { color: '#fff', fontWeight: '800', fontSize: 13 },
   stepText: { color: '#D1D5DB', fontSize: 14, flex: 1, lineHeight: 21, paddingTop: 4 },
+  groupsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  groupChip: { borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
+  groupChipText: { color: '#fff', fontWeight: '700', fontSize: 13 },
 });
