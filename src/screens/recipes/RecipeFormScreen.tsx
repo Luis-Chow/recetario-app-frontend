@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  SafeAreaView, KeyboardAvoidingView, Platform, Switch,
+  KeyboardAvoidingView, Platform, Switch,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useData } from '../../context/DataContext';
@@ -120,15 +121,15 @@ export default function RecipeFormScreen() {
               <View key={i} style={styles.ingredientRow}>
                 <FormInput
                   label="" value={ing.name} onChangeText={v => updateIngredient(i, 'name', v)}
-                  placeholder="Ingrediente" style={{ flex: 2 }}
+                  placeholder="Ingrediente" containerStyle={{ flex: 2 }}
                 />
                 <FormInput
                   label="" value={ing.quantity} onChangeText={v => updateIngredient(i, 'quantity', v)}
-                  placeholder="Cant." keyboardType="numeric" style={{ flex: 1 }}
+                  placeholder="Cant." keyboardType="numeric" containerStyle={{ flex: 1 }}
                 />
                 <FormInput
                   label="" value={ing.unit} onChangeText={v => updateIngredient(i, 'unit', v)}
-                  placeholder="Unidad" style={{ flex: 1 }}
+                  placeholder="Unidad" containerStyle={{ flex: 1 }}
                 />
                 {ingredients.length > 1 && (
                   <TouchableOpacity onPress={() => removeIngredient(i)} style={styles.removeBtn}>
@@ -156,7 +157,7 @@ export default function RecipeFormScreen() {
                   onChangeText={v => updateStep(i, v)}
                   placeholder={`Paso ${i + 1}...`}
                   multiline
-                  style={{ flex: 1 }}
+                  containerStyle={{ flex: 1 }}
                 />
                 {steps.length > 1 && (
                   <TouchableOpacity onPress={() => removeStep(i)} style={styles.removeBtn}>

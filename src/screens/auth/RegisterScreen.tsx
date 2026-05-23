@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
+  View, Text, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -64,6 +65,7 @@ export default function RegisterScreen({ navigation }: Props) {
               onChangeText={setPassword}
               placeholder="Mínimo 6 caracteres"
               secureTextEntry
+              autoCapitalize="none"
               error={errors.password}
             />
             <FormInput
@@ -72,6 +74,7 @@ export default function RegisterScreen({ navigation }: Props) {
               onChangeText={setConfirm}
               placeholder="Repite la contraseña"
               secureTextEntry
+              autoCapitalize="none"
               error={errors.confirm}
             />
             <TouchableOpacity style={styles.btn} onPress={handleRegister} disabled={loading}>

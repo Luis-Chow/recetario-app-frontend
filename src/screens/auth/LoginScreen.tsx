@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
+  View, Text, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -58,6 +59,7 @@ export default function LoginScreen({ navigation }: Props) {
               onChangeText={setPassword}
               placeholder="••••••••"
               secureTextEntry
+              autoCapitalize="none"
               error={errors.password}
             />
             <TouchableOpacity style={styles.btn} onPress={handleLogin} disabled={loading}>
