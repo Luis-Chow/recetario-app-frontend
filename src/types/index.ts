@@ -1,0 +1,38 @@
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  createdAt: string;
+}
+
+export interface Ingredient {
+  name: string;
+  quantity: string;
+  unit: string;
+}
+
+export interface Recipe {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  ingredients: Ingredient[];
+  steps: string[];
+  prepTime: number;
+  servings: number;
+  isPublic: boolean;
+  createdAt: string;
+}
+
+export type RootStackParamList = {
+  Login: undefined;
+  Register: undefined;
+  Main: undefined;
+};
+
+export type MainTabParamList = {
+  AllRecipes: undefined;
+  MyRecipes: undefined;
+  Profile: undefined;
+};
