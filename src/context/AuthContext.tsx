@@ -59,12 +59,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const storedUsers: User[] = JSON.parse((await AsyncStorage.getItem(USERS_KEY)) || '[]');
-    const found = storedUsers.find(
-      u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-    if (!found) return { error: 'Correo o contraseña incorrectos.' };
-    setUser(found);
-    await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(found));
+    const byEmail = storedUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (!byEmail) return { error: 'No existe una cuenta con ese correo. Regístrate primero.' };
+    if (byEmail.password !== password) return { error: 'Contraseña incorrecta.' };
+    setUser(byEmail);
+    await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(byEmail));
     return {};
   };
 

@@ -7,6 +7,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
+import ExpandableText from '../../components/ExpandableText';
 
 type RouteParams = { RecipeDetail: { recipeId: string } };
 
@@ -70,7 +71,14 @@ export default function RecipeDetailScreen() {
         <View style={styles.hero}>
           <Text style={styles.heroEmoji}>🍽️</Text>
           <Text style={styles.heroTitle}>{recipe.title}</Text>
-          {recipe.description ? <Text style={styles.heroDesc}>{recipe.description}</Text> : null}
+          {recipe.description ? (
+            <ExpandableText
+              text={recipe.description}
+              style={styles.heroDesc}
+              numberOfLines={3}
+              align="center"
+            />
+          ) : null}
           <View style={styles.metaRow}>
             <View style={styles.metaCard}>
               <Text style={styles.metaValue}>⏱ {recipe.prepTime}</Text>

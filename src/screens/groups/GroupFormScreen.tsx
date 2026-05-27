@@ -83,6 +83,7 @@ export default function GroupFormScreen() {
               value={name}
               onChangeText={setName}
               placeholder="Ej. Postres, Desayunos, Vegetarianas..."
+              maxLength={50}
               error={errors.name}
             />
             <FormInput
@@ -92,6 +93,7 @@ export default function GroupFormScreen() {
               placeholder="Breve descripción (opcional)"
               multiline
               numberOfLines={3}
+              maxLength={1000}
             />
           </View>
 

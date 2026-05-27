@@ -111,8 +111,8 @@ export default function RecipeFormScreen() {
           </View>
 
           <View style={styles.section}>
-            <FormInput label="Título *" value={title} onChangeText={setTitle} placeholder="Ej. Tacos de pollo" error={errors.title} />
-            <FormInput label="Descripción" value={description} onChangeText={setDescription} placeholder="Breve descripción (opcional)" multiline numberOfLines={3} />
+            <FormInput label="Título *" value={title} onChangeText={setTitle} placeholder="Ej. Tacos de pollo" maxLength={80} error={errors.title} />
+            <FormInput label="Descripción" value={description} onChangeText={setDescription} placeholder="Breve descripción (opcional)" multiline numberOfLines={3} maxLength={1000} />
             <View style={styles.row}>
               <View style={{ flex: 1 }}>
                 <FormInput label="Tiempo (min) *" value={prepTime} onChangeText={setPrepTime} keyboardType="numeric" placeholder="30" error={errors.prepTime} />
@@ -164,15 +164,15 @@ export default function RecipeFormScreen() {
               <View key={i} style={styles.ingredientRow}>
                 <FormInput
                   label="" value={ing.name} onChangeText={v => updateIngredient(i, 'name', v)}
-                  placeholder="Ingrediente" containerStyle={{ flex: 2 }}
+                  placeholder="Ingrediente" maxLength={60} containerStyle={{ flex: 2 }}
                 />
                 <FormInput
                   label="" value={ing.quantity} onChangeText={v => updateIngredient(i, 'quantity', v)}
-                  placeholder="Cant." keyboardType="numeric" containerStyle={{ flex: 1 }}
+                  placeholder="Cant." keyboardType="numeric" maxLength={10} containerStyle={{ flex: 1 }}
                 />
                 <FormInput
                   label="" value={ing.unit} onChangeText={v => updateIngredient(i, 'unit', v)}
-                  placeholder="Unidad" containerStyle={{ flex: 1 }}
+                  placeholder="Unidad" maxLength={20} containerStyle={{ flex: 1 }}
                 />
                 {ingredients.length > 1 && (
                   <TouchableOpacity onPress={() => removeIngredient(i)} style={styles.removeBtn}>
@@ -200,6 +200,7 @@ export default function RecipeFormScreen() {
                   onChangeText={v => updateStep(i, v)}
                   placeholder={`Paso ${i + 1}...`}
                   multiline
+                  maxLength={500}
                   containerStyle={{ flex: 1 }}
                 />
                 {steps.length > 1 && (

@@ -26,6 +26,7 @@ export default function RegisterScreen({ navigation }: Props) {
     if (!email.trim()) e.email = 'El correo es requerido.';
     else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'Correo inválido.';
     if (!password) e.password = 'La contraseña es requerida.';
+    else if (/\s/.test(password)) e.password = 'La contraseña no puede contener espacios.';
     else if (password.length < 6) e.password = 'Mínimo 6 caracteres.';
     if (password !== confirm) e.confirm = 'Las contraseñas no coinciden.';
     setErrors(e);
@@ -49,7 +50,7 @@ export default function RegisterScreen({ navigation }: Props) {
           <Text style={styles.subtitle}>Únete al recetario</Text>
 
           <View style={styles.card}>
-            <FormInput label="Nombre" value={name} onChangeText={setName} placeholder="Tu nombre" error={errors.name} />
+            <FormInput label="Nombre" value={name} onChangeText={setName} placeholder="Tu nombre" maxLength={50} error={errors.name} />
             <FormInput
               label="Correo electrónico"
               value={email}
@@ -57,15 +58,17 @@ export default function RegisterScreen({ navigation }: Props) {
               placeholder="tu@correo.com"
               keyboardType="email-address"
               autoCapitalize="none"
+              maxLength={100}
               error={errors.email}
             />
             <FormInput
               label="Contraseña"
               value={password}
               onChangeText={setPassword}
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mínimo 6 caracteres, sin espacios"
               secureTextEntry
               autoCapitalize="none"
+              maxLength={64}
               error={errors.password}
             />
             <FormInput
@@ -75,6 +78,7 @@ export default function RegisterScreen({ navigation }: Props) {
               placeholder="Repite la contraseña"
               secureTextEntry
               autoCapitalize="none"
+              maxLength={64}
               error={errors.confirm}
             />
             <TouchableOpacity style={styles.btn} onPress={handleRegister} disabled={loading}>

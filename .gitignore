@@ -44,3 +44,4 @@ yarn-error.*
 .claude/
 CLAUDE.md
 AGENTS.md
+handoff.md

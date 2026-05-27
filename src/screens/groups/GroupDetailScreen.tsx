@@ -7,6 +7,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useData } from '../../context/DataContext';
 import { Recipe } from '../../types';
+import ExpandableText from '../../components/ExpandableText';
 
 type RouteParams = { GroupDetail: { groupId: string } };
 
@@ -102,7 +103,14 @@ export default function GroupDetailScreen() {
       <View style={styles.hero}>
         <View style={[styles.colorBadge, { backgroundColor: group.color }]} />
         <Text style={styles.heroTitle}>{group.name}</Text>
-        {group.description ? <Text style={styles.heroDesc}>{group.description}</Text> : null}
+        {group.description ? (
+          <ExpandableText
+            text={group.description}
+            style={styles.heroDesc}
+            numberOfLines={3}
+            align="center"
+          />
+        ) : null}
         <Text style={styles.heroCount}>📚 {groupRecipes.length} receta{groupRecipes.length === 1 ? '' : 's'}</Text>
       </View>
 

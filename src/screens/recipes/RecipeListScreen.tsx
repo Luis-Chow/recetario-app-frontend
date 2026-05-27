@@ -45,8 +45,8 @@ export default function RecipeListScreen() {
       <View style={styles.cardLeft}>
         <Text style={styles.emoji}>🍽️</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-          <Text style={styles.cardSub} numberOfLines={1}>{item.description || 'Sin descripción'}</Text>
+          <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
+          <Text style={styles.cardSub} numberOfLines={1} ellipsizeMode="tail">{item.description || 'Sin descripción'}</Text>
           <View style={styles.tags}>
             <Text style={styles.tag}>⏱ {item.prepTime} min</Text>
             <Text style={styles.tag}>🍴 {item.servings} porciones</Text>

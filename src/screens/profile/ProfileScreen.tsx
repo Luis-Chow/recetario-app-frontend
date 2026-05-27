@@ -21,7 +21,8 @@ export default function ProfileScreen() {
     if (!name.trim()) e.name = 'El nombre es requerido.';
     if (!email.trim()) e.email = 'El correo es requerido.';
     else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'Correo inválido.';
-    if (password && password.length < 6) e.password = 'Mínimo 6 caracteres.';
+    if (password && /\s/.test(password)) e.password = 'La contraseña no puede contener espacios.';
+    else if (password && password.length < 6) e.password = 'Mínimo 6 caracteres.';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -75,14 +76,15 @@ export default function ProfileScreen() {
           <View style={styles.card}>
             {editing ? (
               <>
-                <FormInput label="Nombre" value={name} onChangeText={setName} error={errors.name} />
+                <FormInput label="Nombre" value={name} onChangeText={setName} maxLength={50} error={errors.name} />
                 <FormInput
                   label="Correo" value={email} onChangeText={setEmail}
-                  keyboardType="email-address" autoCapitalize="none" error={errors.email}
+                  keyboardType="email-address" autoCapitalize="none" maxLength={100} error={errors.email}
                 />
                 <FormInput
                   label="Nueva contraseña (opcional)" value={password} onChangeText={setPassword}
-                  placeholder="Dejar vacío para no cambiar" secureTextEntry error={errors.password}
+                  placeholder="Dejar vacío para no cambiar" secureTextEntry
+                  autoCapitalize="none" maxLength={64} error={errors.password}
                 />
                 <View style={styles.row}>
                   <TouchableOpacity style={[styles.btn, styles.btnSecondary]} onPress={handleCancel}>

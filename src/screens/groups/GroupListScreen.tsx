@@ -44,9 +44,9 @@ export default function GroupListScreen() {
       >
         <View style={[styles.colorTag, { backgroundColor: item.color }]} />
         <View style={{ flex: 1 }}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>
           {item.description ? (
-            <Text style={styles.cardSub} numberOfLines={1}>{item.description}</Text>
+            <Text style={styles.cardSub} numberOfLines={1} ellipsizeMode="tail">{item.description}</Text>
           ) : null}
           <Text style={styles.count}>📚 {count} receta{count === 1 ? '' : 's'}</Text>
         </View>
