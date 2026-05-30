@@ -49,7 +49,6 @@ export default function GroupFormScreen() {
     if (!validate()) return;
     setLoading(true);
     const data = {
-      userId: user!.id,
       name: name.trim(),
       description: description.trim(),
       color,

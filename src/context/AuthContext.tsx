@@ -1,105 +1,95 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../types';
+import { api, ApiError, setToken } from '../services/api';
 
 interface AuthContextType {
   user: User | null;
-  users: User[];
   loading: boolean;
   register: (name: string, email: string, password: string) => Promise<{ error?: string }>;
   login: (email: string, password: string) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
-  updateProfile: (updates: Partial<Pick<User, 'name' | 'email' | 'password'>>) => Promise<{ error?: string }>;
+  updateProfile: (
+    updates: Partial<Pick<User, 'name' | 'email'>> & { password?: string }
+  ) => Promise<{ error?: string }>;
   deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USERS_KEY = 'recetas_users';
-const CURRENT_USER_KEY = 'recetas_current_user';
+function errorMessage(e: unknown): string {
+  if (e instanceof ApiError) return e.message;
+  if (e instanceof Error) return e.message;
+  return 'Error desconocido.';
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const storedUsers = await AsyncStorage.getItem(USERS_KEY);
-      const storedUser = await AsyncStorage.getItem(CURRENT_USER_KEY);
-      if (storedUsers) setUsers(JSON.parse(storedUsers));
-      if (storedUser) setUser(JSON.parse(storedUser));
-      setLoading(false);
+      try {
+        const { user } = await api.getMe();
+        setUser(user);
+      } catch {
+        await setToken(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
-  const saveUsers = async (updated: User[]) => {
-    setUsers(updated);
-    await AsyncStorage.setItem(USERS_KEY, JSON.stringify(updated));
-  };
-
   const register = async (name: string, email: string, password: string) => {
-    const storedUsers: User[] = JSON.parse((await AsyncStorage.getItem(USERS_KEY)) || '[]');
-    if (storedUsers.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-      return { error: 'Ya existe una cuenta con ese correo.' };
+    try {
+      const { user, token } = await api.register(name, email, password);
+      await setToken(token);
+      setUser(user);
+      return {};
+    } catch (e) {
+      return { error: errorMessage(e) };
     }
-    const newUser: User = {
-      id: Date.now().toString(),
-      name,
-      email: email.toLowerCase(),
-      password,
-      createdAt: new Date().toISOString(),
-    };
-    const updated = [...storedUsers, newUser];
-    await saveUsers(updated);
-    setUser(newUser);
-    await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
-    return {};
   };
 
   const login = async (email: string, password: string) => {
-    const storedUsers: User[] = JSON.parse((await AsyncStorage.getItem(USERS_KEY)) || '[]');
-    const byEmail = storedUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (!byEmail) return { error: 'No existe una cuenta con ese correo. Regístrate primero.' };
-    if (byEmail.password !== password) return { error: 'Contraseña incorrecta.' };
-    setUser(byEmail);
-    await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(byEmail));
-    return {};
+    try {
+      const { user, token } = await api.login(email, password);
+      await setToken(token);
+      setUser(user);
+      return {};
+    } catch (e) {
+      return { error: errorMessage(e) };
+    }
   };
 
   const logout = async () => {
+    await setToken(null);
     setUser(null);
-    await AsyncStorage.removeItem(CURRENT_USER_KEY);
   };
 
-  const updateProfile = async (updates: Partial<Pick<User, 'name' | 'email' | 'password'>>) => {
-    if (!user) return { error: 'No hay sesión activa.' };
-    const storedUsers: User[] = JSON.parse((await AsyncStorage.getItem(USERS_KEY)) || '[]');
-    if (updates.email && updates.email.toLowerCase() !== user.email) {
-      if (storedUsers.find(u => u.id !== user.id && u.email.toLowerCase() === updates.email!.toLowerCase())) {
-        return { error: 'Ese correo ya está en uso.' };
-      }
+  const updateProfile = async (
+    updates: Partial<Pick<User, 'name' | 'email'>> & { password?: string }
+  ) => {
+    try {
+      const { user } = await api.updateMe(updates);
+      setUser(user);
+      return {};
+    } catch (e) {
+      return { error: errorMessage(e) };
     }
-    const updated = storedUsers.map(u =>
-      u.id === user.id ? { ...u, ...updates, email: (updates.email || u.email).toLowerCase() } : u
-    );
-    const updatedUser = updated.find(u => u.id === user.id)!;
-    await saveUsers(updated);
-    setUser(updatedUser);
-    await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
-    return {};
   };
 
   const deleteAccount = async () => {
-    if (!user) return;
-    const storedUsers: User[] = JSON.parse((await AsyncStorage.getItem(USERS_KEY)) || '[]');
-    await saveUsers(storedUsers.filter(u => u.id !== user.id));
-    setUser(null);
-    await AsyncStorage.removeItem(CURRENT_USER_KEY);
+    try {
+      await api.deleteMe();
+    } finally {
+      await setToken(null);
+      setUser(null);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, users, loading, register, login, logout, updateProfile, deleteAccount }}>
+    <AuthContext.Provider value={{ user, loading, register, login, logout, updateProfile, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

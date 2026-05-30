@@ -61,7 +61,6 @@ export default function RecipeFormScreen() {
     if (!validate()) return;
     setLoading(true);
     const data = {
-      userId: user!.id,
       title: title.trim(),
       description: description.trim(),
       prepTime: Number(prepTime),
