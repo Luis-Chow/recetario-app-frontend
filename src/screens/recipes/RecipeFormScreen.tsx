@@ -13,6 +13,16 @@ import FormInput from '../../components/FormInput';
 
 type RouteParams = { RecipeForm: { recipeId?: string } };
 
+const MAX_PREP_TIME = 1440; // 24 horas en minutos
+const MAX_SERVINGS = 100;
+
+// Deja solo dígitos y limita al máximo (evita letras, decimales, negativos y números absurdos).
+function sanitizeNumber(value: string, max: number): string {
+  const digits = value.replace(/\D/g, '');
+  if (digits === '') return '';
+  return String(Math.min(Number(digits), max));
+}
+
 export default function RecipeFormScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute<RouteProp<RouteParams, 'RecipeForm'>>();
@@ -48,9 +58,13 @@ export default function RecipeFormScreen() {
 
   const validate = () => {
     const e: Record<string, string> = {};
+    const t = Number(prepTime);
+    const s = Number(servings);
     if (!title.trim()) e.title = 'El título es requerido.';
-    if (!prepTime || isNaN(Number(prepTime)) || Number(prepTime) <= 0) e.prepTime = 'Ingresa un tiempo válido.';
-    if (!servings || isNaN(Number(servings)) || Number(servings) <= 0) e.servings = 'Ingresa las porciones.';
+    if (!prepTime || isNaN(t) || t <= 0) e.prepTime = 'Ingresa un tiempo válido.';
+    else if (t > MAX_PREP_TIME) e.prepTime = `El tiempo máximo es ${MAX_PREP_TIME} min (24 h).`;
+    if (!servings || isNaN(s) || s <= 0) e.servings = 'Ingresa las porciones.';
+    else if (s > MAX_SERVINGS) e.servings = `El máximo es ${MAX_SERVINGS} porciones.`;
     if (ingredients.some(i => !i.name.trim())) e.ingredients = 'Completa todos los ingredientes.';
     if (steps.some(s => !s.trim())) e.steps = 'Completa todos los pasos.';
     setErrors(e);
@@ -63,8 +77,8 @@ export default function RecipeFormScreen() {
     const data = {
       title: title.trim(),
       description: description.trim(),
-      prepTime: Number(prepTime),
-      servings: Number(servings),
+      prepTime: Math.min(Number(prepTime), MAX_PREP_TIME),
+      servings: Math.min(Number(servings), MAX_SERVINGS),
       isPublic,
       ingredients: ingredients.filter(i => i.name.trim()),
       steps: steps.filter(s => s.trim()),
@@ -114,10 +128,10 @@ export default function RecipeFormScreen() {
             <FormInput label="Descripción" value={description} onChangeText={setDescription} placeholder="Breve descripción (opcional)" multiline numberOfLines={3} maxLength={1000} />
             <View style={styles.row}>
               <View style={{ flex: 1 }}>
-                <FormInput label="Tiempo (min) *" value={prepTime} onChangeText={setPrepTime} keyboardType="numeric" placeholder="30" error={errors.prepTime} />
+                <FormInput label="Tiempo (min) *" value={prepTime} onChangeText={v => setPrepTime(sanitizeNumber(v, MAX_PREP_TIME))} keyboardType="numeric" maxLength={4} placeholder="1–1440 (24 h)" error={errors.prepTime} />
               </View>
               <View style={{ flex: 1 }}>
-                <FormInput label="Porciones *" value={servings} onChangeText={setServings} keyboardType="numeric" placeholder="4" error={errors.servings} />
+                <FormInput label="Porciones *" value={servings} onChangeText={v => setServings(sanitizeNumber(v, MAX_SERVINGS))} keyboardType="numeric" maxLength={3} placeholder="1–100" error={errors.servings} />
               </View>
             </View>
             <View style={styles.switchRow}>
