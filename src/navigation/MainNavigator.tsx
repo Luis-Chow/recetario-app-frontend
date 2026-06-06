@@ -53,6 +53,8 @@ function GroupsStack() {
 
 export default function MainNavigator() {
   const insets = useSafeAreaInsets();
+  // Garantiza separacion incluso en Android con barra de gestos (donde insets.bottom puede ser 0)
+  const bottomSpace = Math.max(insets.bottom, 12);
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -62,8 +64,8 @@ export default function MainNavigator() {
         tabBarStyle: {
           backgroundColor: '#1F2937',
           borderTopColor: '#374151',
-          paddingBottom: 5 + insets.bottom,
-          height: 60 + insets.bottom,
+          paddingBottom: 5 + bottomSpace,
+          height: 60 + bottomSpace,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         tabBarIcon: ({ size }) => {
