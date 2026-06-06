@@ -16,12 +16,14 @@ export default function RecipeListScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute<RouteProp<RouteParams, 'RecipeList'>>();
   const personal = route.params?.personal ?? false;
-  const { recipes, groups, deleteRecipe } = useData();
+  const { recipes, groups, deleteRecipe, unsaveRecipe } = useData();
   const { user } = useAuth();
   const [search, setSearch] = React.useState('');
 
   const filtered = useMemo(() => {
-    let list = personal ? recipes.filter(r => r.userId === user?.id) : recipes;
+    let list = personal
+      ? recipes.filter(r => r.userId === user?.id || r.isSaved)
+      : recipes;
     if (search.trim()) {
       list = list.filter(r => r.title.toLowerCase().includes(search.toLowerCase()));
     }
@@ -43,22 +45,47 @@ export default function RecipeListScreen() {
     ]);
   };
 
+  const handleUnsave = (recipe: Recipe) => {
+    Alert.alert(
+      'Quitar de mis recetas',
+      `¿Quitar "${recipe.title}" de tus recetas guardadas? La receta original no se borrará.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Quitar', style: 'destructive', onPress: async () => {
+            try {
+              await unsaveRecipe(recipe.id);
+            } catch (e) {
+              Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo quitar la receta.');
+            }
+          }
+        },
+      ]
+    );
+  };
+
   const renderItem = ({ item }: { item: Recipe }) => {
     const itemGroups = groups.filter(g => (item.groupIds || []).includes(g.id));
+    const isOwn = item.userId === user?.id;
+    const isSaved = !!item.isSaved && !isOwn;
     return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('RecipeDetail', { recipeId: item.id })}
-    >
-      <View style={styles.cardLeft}>
+    <View style={styles.card}>
+      <TouchableOpacity
+        style={styles.cardLeft}
+        onPress={() => navigation.navigate('RecipeDetail', { recipeId: item.id })}
+        activeOpacity={0.7}
+      >
         {item.image ? (
           <Image source={{ uri: item.image }} style={styles.thumb} />
         ) : (
           <Text style={styles.emoji}>🍽️</Text>
         )}
         <View style={{ flex: 1 }}>
-          <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
-          {item.userId !== user?.id && item.author?.name ? (
+          <View style={styles.titleRow}>
+            <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
+            {isSaved && <Text style={styles.savedBadge}>📌</Text>}
+          </View>
+          {!isOwn && item.author?.name ? (
             <Text style={styles.cardAuthor} numberOfLines={1} ellipsizeMode="tail">por {item.author.name}</Text>
           ) : null}
           <Text style={styles.cardSub} numberOfLines={1} ellipsizeMode="tail">{item.description || 'Sin descripción'}</Text>
@@ -80,18 +107,36 @@ export default function RecipeListScreen() {
             </View>
           )}
         </View>
-      </View>
-      {item.userId === user?.id && (
+      </TouchableOpacity>
+      {isOwn ? (
         <View style={styles.actions}>
-          <TouchableOpacity onPress={() => navigation.navigate('RecipeForm', { recipeId: item.id })}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('RecipeForm', { recipeId: item.id })}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={styles.actionTouchable}
+          >
             <Text style={styles.actionBtn}>✏️</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleDelete(item)}>
+          <TouchableOpacity
+            onPress={() => handleDelete(item)}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={styles.actionTouchable}
+          >
             <Text style={styles.actionBtn}>🗑️</Text>
           </TouchableOpacity>
         </View>
-      )}
-    </TouchableOpacity>
+      ) : isSaved ? (
+        <View style={styles.actions}>
+          <TouchableOpacity
+            onPress={() => handleUnsave(item)}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={styles.actionTouchable}
+          >
+            <Text style={styles.actionBtn}>🗑️</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+    </View>
     );
   };
 
@@ -152,7 +197,9 @@ const styles = StyleSheet.create({
   cardLeft: { flexDirection: 'row', flex: 1, gap: 12, alignItems: 'center' },
   emoji: { fontSize: 32, width: 48, textAlign: 'center' },
   thumb: { width: 56, height: 56, borderRadius: 10, backgroundColor: '#374151' },
-  cardTitle: { color: '#F9FAFB', fontSize: 16, fontWeight: '700' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  cardTitle: { color: '#F9FAFB', fontSize: 16, fontWeight: '700', flex: 1 },
+  savedBadge: { fontSize: 14 },
   cardAuthor: { color: '#E8735A', fontSize: 11, fontWeight: '600', marginTop: 1 },
   cardSub: { color: '#9CA3AF', fontSize: 13, marginTop: 2 },
   tags: { flexDirection: 'row', gap: 8, marginTop: 6, flexWrap: 'wrap' },
@@ -162,8 +209,9 @@ const styles = StyleSheet.create({
   groupPill: { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2, maxWidth: 100 },
   groupPillText: { color: '#fff', fontSize: 10, fontWeight: '700' },
   moreGroups: { color: '#9CA3AF', fontSize: 11, fontWeight: '600' },
-  actions: { gap: 8 },
-  actionBtn: { fontSize: 20, padding: 4 },
+  actions: { gap: 4, alignItems: 'center', justifyContent: 'center' },
+  actionTouchable: { padding: 10, borderRadius: 8 },
+  actionBtn: { fontSize: 22 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyText: { color: '#6B7280', fontSize: 16 },

@@ -110,4 +110,12 @@ export const api = {
 
   reorderGroups: (ids: string[]) =>
     request<GroupsResponse>('POST', '/groups/reorder', { ids }),
+
+  saveRecipe: (recipeId: string, groupIds: string[]) =>
+    request<{ saved: { id: string; recipeId: string; groupIds: string[] } }>(
+      'POST', `/recipes/${recipeId}/save`, { groupIds }
+    ),
+
+  unsaveRecipe: (recipeId: string) =>
+    request<{ ok: true }>('DELETE', `/recipes/${recipeId}/save`),
 };

@@ -71,10 +71,18 @@ export default function GroupListScreen() {
         <Text style={styles.count}>📚 {count} receta{count === 1 ? '' : 's'}</Text>
       </View>
       <View style={styles.actions}>
-        <TouchableOpacity onPress={() => navigation.navigate('GroupForm', { groupId: item.id })}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('GroupForm', { groupId: item.id })}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          style={styles.actionTouchable}
+        >
           <Text style={styles.actionBtn}>✏️</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDelete(item)}>
+        <TouchableOpacity
+          onPress={() => handleDelete(item)}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          style={styles.actionTouchable}
+        >
           <Text style={styles.actionBtn}>🗑️</Text>
         </TouchableOpacity>
       </View>
@@ -171,8 +179,9 @@ const styles = StyleSheet.create({
   cardTitle: { color: '#F9FAFB', fontSize: 16, fontWeight: '700' },
   cardSub: { color: '#9CA3AF', fontSize: 13, marginTop: 2 },
   count: { color: '#E8735A', fontSize: 12, marginTop: 6, fontWeight: '600' },
-  actions: { gap: 8 },
-  actionBtn: { fontSize: 20, padding: 4 },
+  actions: { gap: 4, alignItems: 'center', justifyContent: 'center' },
+  actionTouchable: { padding: 10, borderRadius: 8 },
+  actionBtn: { fontSize: 22 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyText: { color: '#9CA3AF', fontSize: 16, fontWeight: '600' },

@@ -31,6 +31,7 @@ export interface Recipe {
   servings: number;
   isPublic: boolean;
   groupIds: string[];
+  isSaved?: boolean;
   createdAt: string;
 }
 

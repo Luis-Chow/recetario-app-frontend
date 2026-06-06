@@ -14,6 +14,8 @@ interface DataContextType {
   deleteGroup: (id: string) => Promise<void>;
   removeRecipeFromGroup: (recipeId: string, groupId: string) => Promise<void>;
   reorderGroups: (ids: string[]) => Promise<void>;
+  saveRecipe: (recipeId: string, groupIds: string[]) => Promise<void>;
+  unsaveRecipe: (recipeId: string) => Promise<void>;
   refreshData: () => Promise<void>;
 }
 
@@ -87,6 +89,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setRecipes(prev => prev.map(r => (r.id === recipeId ? recipe : r)));
   };
 
+  const saveRecipe = async (recipeId: string, groupIds: string[]) => {
+    await api.saveRecipe(recipeId, groupIds);
+    await refreshData();
+  };
+
+  const unsaveRecipe = async (recipeId: string) => {
+    await api.unsaveRecipe(recipeId);
+    await refreshData();
+  };
+
   const reorderGroups = async (ids: string[]) => {
     const optimistic = [...ids]
       .map(id => groups.find(g => g.id === id))
@@ -109,6 +121,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         deleteGroup,
         removeRecipeFromGroup,
         reorderGroups,
+        saveRecipe,
+        unsaveRecipe,
         refreshData,
       }}
     >
