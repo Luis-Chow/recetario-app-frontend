@@ -74,7 +74,7 @@ export const api = {
 
   getMe: () => request<UserResponse>('GET', '/users/me'),
 
-  updateMe: (updates: Partial<Pick<User, 'name' | 'email'>> & { password?: string }) =>
+  updateMe: (updates: Partial<Pick<User, 'name' | 'email' | 'avatar'>> & { password?: string; currentPassword?: string }) =>
     request<UserResponse>('PATCH', '/users/me', updates),
 
   deleteMe: () => request<{ ok: true }>('DELETE', '/users/me'),
@@ -107,4 +107,7 @@ export const api = {
 
   removeRecipeFromGroup: (groupId: string, recipeId: string) =>
     request<RecipeResponse>('DELETE', `/groups/${groupId}/recipes/${recipeId}`),
+
+  reorderGroups: (ids: string[]) =>
+    request<GroupsResponse>('POST', '/groups/reorder', { ids }),
 };

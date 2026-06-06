@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  TextInput, Alert,
+  TextInput, Alert, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -51,7 +51,11 @@ export default function RecipeListScreen() {
       onPress={() => navigation.navigate('RecipeDetail', { recipeId: item.id })}
     >
       <View style={styles.cardLeft}>
-        <Text style={styles.emoji}>🍽️</Text>
+        {item.image ? (
+          <Image source={{ uri: item.image }} style={styles.thumb} />
+        ) : (
+          <Text style={styles.emoji}>🍽️</Text>
+        )}
         <View style={{ flex: 1 }}>
           <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
           <Text style={styles.cardSub} numberOfLines={1} ellipsizeMode="tail">{item.description || 'Sin descripción'}</Text>
@@ -143,7 +147,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
   },
   cardLeft: { flexDirection: 'row', flex: 1, gap: 12, alignItems: 'center' },
-  emoji: { fontSize: 32 },
+  emoji: { fontSize: 32, width: 48, textAlign: 'center' },
+  thumb: { width: 56, height: 56, borderRadius: 10, backgroundColor: '#374151' },
   cardTitle: { color: '#F9FAFB', fontSize: 16, fontWeight: '700' },
   cardSub: { color: '#9CA3AF', fontSize: 13, marginTop: 2 },
   tags: { flexDirection: 'row', gap: 8, marginTop: 6, flexWrap: 'wrap' },

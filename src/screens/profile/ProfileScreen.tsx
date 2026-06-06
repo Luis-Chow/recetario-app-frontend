@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  ScrollView, Alert, KeyboardAvoidingView, Platform,
+  ScrollView, Alert, KeyboardAvoidingView, Platform, Image, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import FormInput from '../../components/FormInput';
+import { pickImageFromLibrary } from '../../utils/imagePicker';
 
 export default function ProfileScreen() {
   const { user, logout, updateProfile, deleteAccount } = useAuth();
@@ -13,8 +14,34 @@ export default function ProfileScreen() {
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [password, setPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+
+  const handleChangeAvatar = async () => {
+    setAvatarLoading(true);
+    try {
+      const picked = await pickImageFromLibrary(400);
+      if (!picked) return;
+      const result = await updateProfile({ avatar: picked.base64DataUri });
+      if (result?.error) Alert.alert('Error', result.error);
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo actualizar el avatar.');
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setAvatarLoading(true);
+    try {
+      const result = await updateProfile({ avatar: '' });
+      if (result?.error) Alert.alert('Error', result.error);
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -23,6 +50,7 @@ export default function ProfileScreen() {
     else if (!/\S+@\S+\.\S+/.test(email.trim())) e.email = 'Correo inválido.';
     if (password && /\s/.test(password)) e.password = 'La contraseña no puede contener espacios.';
     else if (password && password.length < 6) e.password = 'Mínimo 6 caracteres.';
+    if (password && !currentPassword) e.currentPassword = 'Ingresa tu contraseña actual.';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -31,13 +59,17 @@ export default function ProfileScreen() {
     if (!validate()) return;
     setLoading(true);
     const updates: Parameters<typeof updateProfile>[0] = { name: name.trim(), email: email.trim() };
-    if (password) updates.password = password;
+    if (password) {
+      updates.password = password;
+      updates.currentPassword = currentPassword;
+    }
     const result = await updateProfile(updates);
     setLoading(false);
     if (result?.error) {
       Alert.alert('Error', result.error);
     } else {
       setPassword('');
+      setCurrentPassword('');
       setEditing(false);
     }
   };
@@ -66,6 +98,7 @@ export default function ProfileScreen() {
     setName(user?.name || '');
     setEmail(user?.email || '');
     setPassword('');
+    setCurrentPassword('');
     setErrors({});
     setEditing(false);
   };
@@ -75,9 +108,23 @@ export default function ProfileScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.header}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase()}</Text>
-            </View>
+            <TouchableOpacity onPress={handleChangeAvatar} disabled={avatarLoading} activeOpacity={0.7}>
+              <View style={styles.avatar}>
+                {avatarLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : user?.avatar ? (
+                  <Image source={{ uri: user.avatar }} style={styles.avatarImg} />
+                ) : (
+                  <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase()}</Text>
+                )}
+              </View>
+              <Text style={styles.avatarHint}>📷 {user?.avatar ? 'Cambiar' : 'Añadir foto'}</Text>
+            </TouchableOpacity>
+            {user?.avatar ? (
+              <TouchableOpacity onPress={handleRemoveAvatar} disabled={avatarLoading}>
+                <Text style={styles.avatarRemove}>Quitar foto</Text>
+              </TouchableOpacity>
+            ) : null}
             <Text style={styles.title}>{user?.name}</Text>
             <Text style={styles.email}>{user?.email}</Text>
           </View>
@@ -95,6 +142,13 @@ export default function ProfileScreen() {
                   placeholder="Dejar vacío para no cambiar" secureTextEntry
                   autoCapitalize="none" maxLength={64} error={errors.password}
                 />
+                {!!password && (
+                  <FormInput
+                    label="Contraseña actual" value={currentPassword} onChangeText={setCurrentPassword}
+                    placeholder="Ingresa tu contraseña actual" secureTextEntry
+                    autoCapitalize="none" maxLength={64} error={errors.currentPassword}
+                  />
+                )}
                 <View style={styles.row}>
                   <TouchableOpacity style={[styles.btn, styles.btnSecondary]} onPress={handleCancel}>
                     <Text style={styles.btnSecondaryText}>Cancelar</Text>
@@ -130,10 +184,14 @@ const styles = StyleSheet.create({
   container: { padding: 24, paddingBottom: 40 },
   header: { alignItems: 'center', marginBottom: 24, paddingTop: 16 },
   avatar: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: '#E8735A', justifyContent: 'center', alignItems: 'center', marginBottom: 12,
+    width: 96, height: 96, borderRadius: 48,
+    backgroundColor: '#E8735A', justifyContent: 'center', alignItems: 'center',
+    overflow: 'hidden',
   },
-  avatarText: { color: '#fff', fontSize: 32, fontWeight: '800' },
+  avatarImg: { width: '100%', height: '100%' },
+  avatarText: { color: '#fff', fontSize: 36, fontWeight: '800' },
+  avatarHint: { color: '#9CA3AF', fontSize: 12, textAlign: 'center', marginTop: 6 },
+  avatarRemove: { color: '#EF4444', fontSize: 12, fontWeight: '600', marginTop: 4 },
   title: { color: '#F9FAFB', fontSize: 22, fontWeight: '800' },
   email: { color: '#9CA3AF', fontSize: 14, marginTop: 4 },
   card: { backgroundColor: '#1F2937', borderRadius: 16, padding: 20, marginBottom: 16 },

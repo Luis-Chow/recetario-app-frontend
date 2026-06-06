@@ -9,7 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (
-    updates: Partial<Pick<User, 'name' | 'email'>> & { password?: string }
+    updates: Partial<Pick<User, 'name' | 'email' | 'avatar'>> & { password?: string; currentPassword?: string }
   ) => Promise<{ error?: string }>;
   deleteAccount: () => Promise<{ error?: string }>;
 }
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = async (
-    updates: Partial<Pick<User, 'name' | 'email'>> & { password?: string }
+    updates: Partial<Pick<User, 'name' | 'email' | 'avatar'>> & { password?: string; currentPassword?: string }
   ) => {
     try {
       const { user } = await api.updateMe(updates);

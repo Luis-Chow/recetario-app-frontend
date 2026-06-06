@@ -48,3 +48,6 @@ AGENTS.md
 handoff.md
 checklist-pruebas.md
 .workflow-bugs-full.json
+
+# APK descargado localmente
+*.apk

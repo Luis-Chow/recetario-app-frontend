@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, Switch, Alert,
+  KeyboardAvoidingView, Platform, Switch, Alert, Image, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -10,6 +10,7 @@ import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { Ingredient } from '../../types';
 import FormInput from '../../components/FormInput';
+import { pickImageFromLibrary } from '../../utils/imagePicker';
 
 type RouteParams = { RecipeForm: { recipeId?: string } };
 
@@ -42,8 +43,22 @@ export default function RecipeFormScreen() {
   );
   const [steps, setSteps] = useState<string[]>(existing?.steps || ['']);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(existing?.groupIds || []);
+  const [image, setImage] = useState<string>(existing?.image || '');
+  const [pickingImage, setPickingImage] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+
+  const handlePickImage = async () => {
+    setPickingImage(true);
+    try {
+      const picked = await pickImageFromLibrary(800);
+      if (picked) setImage(picked.base64DataUri);
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo seleccionar la imagen.');
+    } finally {
+      setPickingImage(false);
+    }
+  };
 
   const userGroups = useMemo(
     () => groups.filter(g => g.userId === user?.id).sort((a, b) => a.name.localeCompare(b.name)),
@@ -78,6 +93,7 @@ export default function RecipeFormScreen() {
       const data = {
         title: title.trim(),
         description: description.trim(),
+        image,
         prepTime: Math.min(Number(prepTime), MAX_PREP_TIME),
         servings: Math.min(Number(servings), MAX_SERVINGS),
         isPublic,
@@ -126,6 +142,31 @@ export default function RecipeFormScreen() {
             <TouchableOpacity onPress={handleSave} disabled={loading}>
               <Text style={styles.save}>{loading ? '...' : 'Guardar'}</Text>
             </TouchableOpacity>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📷 Imagen</Text>
+            <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage} disabled={pickingImage}>
+              {image ? (
+                <Image source={{ uri: image }} style={styles.imagePreview} />
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  {pickingImage ? (
+                    <ActivityIndicator color="#E8735A" />
+                  ) : (
+                    <>
+                      <Text style={styles.imagePlaceholderIcon}>🖼️</Text>
+                      <Text style={styles.imagePlaceholderText}>Toca para añadir foto</Text>
+                    </>
+                  )}
+                </View>
+              )}
+            </TouchableOpacity>
+            {image ? (
+              <TouchableOpacity onPress={() => setImage('')} style={styles.imageRemove}>
+                <Text style={styles.imageRemoveText}>Quitar imagen</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
 
           <View style={styles.section}>
@@ -233,6 +274,16 @@ export default function RecipeFormScreen() {
             </TouchableOpacity>
           </View>
 
+          <TouchableOpacity
+            style={[styles.saveBtnLarge, loading && { opacity: 0.6 }]}
+            onPress={handleSave}
+            disabled={loading}
+          >
+            <Text style={styles.saveBtnLargeText}>
+              {loading ? 'Guardando...' : editing ? '💾 Guardar cambios' : '💾 Crear receta'}
+            </Text>
+          </TouchableOpacity>
+
           <View style={{ height: 32 }} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -273,4 +324,19 @@ const styles = StyleSheet.create({
   addRowBtn: { marginTop: 8, alignItems: 'center', paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#374151', borderStyle: 'dashed' },
   addRowBtnText: { color: '#E8735A', fontWeight: '600', fontSize: 14 },
   errorText: { color: '#EF4444', fontSize: 12, marginBottom: 8 },
+  imagePicker: { borderRadius: 12, overflow: 'hidden', backgroundColor: '#111827' },
+  imagePreview: { width: '100%', height: 200, resizeMode: 'cover' },
+  imagePlaceholder: {
+    width: '100%', height: 160, justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1, borderColor: '#374151', borderStyle: 'dashed', borderRadius: 12,
+  },
+  imagePlaceholderIcon: { fontSize: 32, marginBottom: 4 },
+  imagePlaceholderText: { color: '#9CA3AF', fontSize: 13, fontWeight: '600' },
+  imageRemove: { marginTop: 8, alignItems: 'center' },
+  imageRemoveText: { color: '#EF4444', fontSize: 13, fontWeight: '600' },
+  saveBtnLarge: {
+    backgroundColor: '#E8735A', borderRadius: 12, paddingVertical: 16,
+    alignItems: 'center', marginTop: 8,
+  },
+  saveBtnLargeText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });

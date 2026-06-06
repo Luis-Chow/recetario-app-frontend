@@ -2,6 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  avatar?: string;
   createdAt: string;
 }
 
@@ -16,6 +17,7 @@ export interface Recipe {
   userId: string;
   title: string;
   description: string;
+  image?: string;
   ingredients: Ingredient[];
   steps: string[];
   prepTime: number;
@@ -31,6 +33,7 @@ export interface Group {
   name: string;
   description: string;
   color: string;
+  order?: number;
   createdAt: string;
 }
 

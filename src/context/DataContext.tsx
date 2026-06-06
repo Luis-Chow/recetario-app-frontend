@@ -13,6 +13,7 @@ interface DataContextType {
   updateGroup: (id: string, updates: Partial<Group>) => Promise<void>;
   deleteGroup: (id: string) => Promise<void>;
   removeRecipeFromGroup: (recipeId: string, groupId: string) => Promise<void>;
+  reorderGroups: (ids: string[]) => Promise<void>;
   refreshData: () => Promise<void>;
 }
 
@@ -86,6 +87,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setRecipes(prev => prev.map(r => (r.id === recipeId ? recipe : r)));
   };
 
+  const reorderGroups = async (ids: string[]) => {
+    const optimistic = [...ids]
+      .map(id => groups.find(g => g.id === id))
+      .filter((g): g is typeof groups[number] => !!g);
+    setGroups(optimistic);
+    const { groups: reordered } = await api.reorderGroups(ids);
+    setGroups(reordered);
+  };
+
   return (
     <DataContext.Provider
       value={{
@@ -98,6 +108,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         updateGroup,
         deleteGroup,
         removeRecipeFromGroup,
+        reorderGroups,
         refreshData,
       }}
     >

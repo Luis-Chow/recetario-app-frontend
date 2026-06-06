@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -73,7 +73,11 @@ export default function RecipeDetailScreen() {
         </View>
 
         <View style={styles.hero}>
-          <Text style={styles.heroEmoji}>🍽️</Text>
+          {recipe.image ? (
+            <Image source={{ uri: recipe.image }} style={styles.heroImage} />
+          ) : (
+            <Text style={styles.heroEmoji}>🍽️</Text>
+          )}
           <Text style={styles.heroTitle}>{recipe.title}</Text>
           {recipe.description ? (
             <ExpandableText
@@ -157,6 +161,7 @@ const styles = StyleSheet.create({
   topBtn: { color: '#E8735A', fontSize: 15, fontWeight: '600' },
   hero: { paddingHorizontal: 20, paddingBottom: 20, alignItems: 'center' },
   heroEmoji: { fontSize: 60, marginBottom: 12 },
+  heroImage: { width: '100%', height: 220, borderRadius: 16, marginBottom: 16, backgroundColor: '#374151' },
   heroTitle: { color: '#F9FAFB', fontSize: 26, fontWeight: '800', textAlign: 'center' },
   heroDesc: { color: '#9CA3AF', fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 20 },
   metaRow: { flexDirection: 'row', gap: 12, marginTop: 20 },
