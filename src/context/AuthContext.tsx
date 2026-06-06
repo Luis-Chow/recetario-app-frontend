@@ -11,7 +11,7 @@ interface AuthContextType {
   updateProfile: (
     updates: Partial<Pick<User, 'name' | 'email'>> & { password?: string }
   ) => Promise<{ error?: string }>;
-  deleteAccount: () => Promise<void>;
+  deleteAccount: () => Promise<{ error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -82,9 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const deleteAccount = async () => {
     try {
       await api.deleteMe();
-    } finally {
       await setToken(null);
       setUser(null);
+      return {};
+    } catch (e) {
+      return { error: errorMessage(e) };
     }
   };
 

@@ -48,8 +48,12 @@ export default function GroupDetailScreen() {
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Eliminar', style: 'destructive', onPress: async () => {
-          await deleteGroup(group.id);
-          navigation.goBack();
+          try {
+            await deleteGroup(group.id);
+            navigation.goBack();
+          } catch (e) {
+            Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo eliminar el grupo.');
+          }
         },
       },
     ]);
@@ -61,7 +65,15 @@ export default function GroupDetailScreen() {
       `¿Quitar "${recipe.title}" del grupo "${group.name}"? La receta no se eliminará.`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Quitar', onPress: () => removeRecipeFromGroup(recipe.id, group.id) },
+        {
+          text: 'Quitar', onPress: async () => {
+            try {
+              await removeRecipeFromGroup(recipe.id, group.id);
+            } catch (e) {
+              Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo quitar la receta del grupo.');
+            }
+          }
+        },
       ]
     );
   };

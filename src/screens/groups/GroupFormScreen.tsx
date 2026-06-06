@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -48,18 +48,23 @@ export default function GroupFormScreen() {
   const handleSave = async () => {
     if (!validate()) return;
     setLoading(true);
-    const data = {
-      name: name.trim(),
-      description: description.trim(),
-      color,
-    };
-    if (editing && groupId) {
-      await updateGroup(groupId, data);
-    } else {
-      await addGroup(data);
+    try {
+      const data = {
+        name: name.trim(),
+        description: description.trim(),
+        color,
+      };
+      if (editing && groupId) {
+        await updateGroup(groupId, data);
+      } else {
+        await addGroup(data);
+      }
+      navigation.goBack();
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo guardar el grupo.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-    navigation.goBack();
   };
 
   return (

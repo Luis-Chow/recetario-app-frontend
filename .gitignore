@@ -31,6 +31,7 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
@@ -45,3 +46,5 @@ yarn-error.*
 CLAUDE.md
 AGENTS.md
 handoff.md
+checklist-pruebas.md
+.workflow-bugs-full.json

@@ -31,7 +31,15 @@ export default function RecipeListScreen() {
   const handleDelete = (recipe: Recipe) => {
     Alert.alert('Eliminar receta', `¿Eliminar "${recipe.title}"?`, [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => deleteRecipe(recipe.id) },
+      {
+        text: 'Eliminar', style: 'destructive', onPress: async () => {
+          try {
+            await deleteRecipe(recipe.id);
+          } catch (e) {
+            Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo eliminar la receta.');
+          }
+        }
+      },
     ]);
   };
 

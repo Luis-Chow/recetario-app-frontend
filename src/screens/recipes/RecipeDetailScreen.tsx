@@ -42,8 +42,12 @@ export default function RecipeDetailScreen() {
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Eliminar', style: 'destructive', onPress: async () => {
-          await deleteRecipe(recipe.id);
-          navigation.goBack();
+          try {
+            await deleteRecipe(recipe.id);
+            navigation.goBack();
+          } catch (e) {
+            Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo eliminar la receta.');
+          }
         }
       },
     ]);

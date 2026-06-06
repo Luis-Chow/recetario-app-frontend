@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, Switch,
+  KeyboardAvoidingView, Platform, Switch, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -74,23 +74,28 @@ export default function RecipeFormScreen() {
   const handleSave = async () => {
     if (!validate()) return;
     setLoading(true);
-    const data = {
-      title: title.trim(),
-      description: description.trim(),
-      prepTime: Math.min(Number(prepTime), MAX_PREP_TIME),
-      servings: Math.min(Number(servings), MAX_SERVINGS),
-      isPublic,
-      ingredients: ingredients.filter(i => i.name.trim()),
-      steps: steps.filter(s => s.trim()),
-      groupIds: selectedGroupIds,
-    };
-    if (editing && recipeId) {
-      await updateRecipe(recipeId, data);
-    } else {
-      await addRecipe(data);
+    try {
+      const data = {
+        title: title.trim(),
+        description: description.trim(),
+        prepTime: Math.min(Number(prepTime), MAX_PREP_TIME),
+        servings: Math.min(Number(servings), MAX_SERVINGS),
+        isPublic,
+        ingredients: ingredients.filter(i => i.name.trim()),
+        steps: steps.filter(s => s.trim()),
+        groupIds: selectedGroupIds,
+      };
+      if (editing && recipeId) {
+        await updateRecipe(recipeId, data);
+      } else {
+        await addRecipe(data);
+      }
+      navigation.goBack();
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo guardar la receta.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-    navigation.goBack();
   };
 
   const addIngredient = () => setIngredients([...ingredients, { name: '', quantity: '', unit: '' }]);

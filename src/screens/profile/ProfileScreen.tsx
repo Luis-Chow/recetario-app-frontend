@@ -20,7 +20,7 @@ export default function ProfileScreen() {
     const e: Record<string, string> = {};
     if (!name.trim()) e.name = 'El nombre es requerido.';
     if (!email.trim()) e.email = 'El correo es requerido.';
-    else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'Correo inválido.';
+    else if (!/\S+@\S+\.\S+/.test(email.trim())) e.email = 'Correo inválido.';
     if (password && /\s/.test(password)) e.password = 'La contraseña no puede contener espacios.';
     else if (password && password.length < 6) e.password = 'Mínimo 6 caracteres.';
     setErrors(e);
@@ -48,7 +48,16 @@ export default function ProfileScreen() {
       '¿Estás seguro? Esta acción no se puede deshacer y perderás todos tus datos.',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', style: 'destructive', onPress: () => deleteAccount() },
+        {
+          text: 'Eliminar', style: 'destructive', onPress: async () => {
+            setLoading(true);
+            const result = await deleteAccount();
+            setLoading(false);
+            if (result?.error) {
+              Alert.alert('Error', result.error);
+            }
+          }
+        },
       ]
     );
   };

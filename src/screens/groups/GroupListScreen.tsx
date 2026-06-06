@@ -31,7 +31,15 @@ export default function GroupListScreen() {
       : `¿Eliminar el grupo "${group.name}"?`;
     Alert.alert('Eliminar grupo', message, [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => deleteGroup(group.id) },
+      {
+        text: 'Eliminar', style: 'destructive', onPress: async () => {
+          try {
+            await deleteGroup(group.id);
+          } catch (e) {
+            Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo eliminar el grupo.');
+          }
+        }
+      },
     ]);
   };
 
