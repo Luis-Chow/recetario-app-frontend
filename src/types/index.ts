@@ -12,9 +12,16 @@ export interface Ingredient {
   unit: string;
 }
 
+export interface RecipeAuthor {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
 export interface Recipe {
   id: string;
   userId: string;
+  author?: RecipeAuthor;
   title: string;
   description: string;
   image?: string;

@@ -79,9 +79,51 @@ export default function MainNavigator() {
         },
       })}
     >
-      <Tab.Screen name="AllRecipes" component={AllRecipesStack} options={{ tabBarLabel: 'Todas' }} />
-      <Tab.Screen name="MyRecipes" component={MyRecipesStack} options={{ tabBarLabel: 'Mis Recetas' }} />
-      <Tab.Screen name="Groups" component={GroupsStack} options={{ tabBarLabel: 'Grupos' }} />
+      <Tab.Screen
+        name="AllRecipes"
+        component={AllRecipesStack}
+        options={{ tabBarLabel: 'Todas', unmountOnBlur: true } as any}
+        listeners={({ navigation, route }) => ({
+          tabPress: e => {
+            const state = navigation.getState();
+            const tabRoute = state.routes.find((r: any) => r.name === route.name);
+            if (navigation.isFocused() && tabRoute?.state?.index && tabRoute.state.index > 0) {
+              e.preventDefault();
+              (navigation as any).navigate(route.name, { screen: 'RecipeList' });
+            }
+          },
+        })}
+      />
+      <Tab.Screen
+        name="MyRecipes"
+        component={MyRecipesStack}
+        options={{ tabBarLabel: 'Mis Recetas', unmountOnBlur: true } as any}
+        listeners={({ navigation, route }) => ({
+          tabPress: e => {
+            const state = navigation.getState();
+            const tabRoute = state.routes.find((r: any) => r.name === route.name);
+            if (navigation.isFocused() && tabRoute?.state?.index && tabRoute.state.index > 0) {
+              e.preventDefault();
+              (navigation as any).navigate(route.name, { screen: 'RecipeList' });
+            }
+          },
+        })}
+      />
+      <Tab.Screen
+        name="Groups"
+        component={GroupsStack}
+        options={{ tabBarLabel: 'Grupos', unmountOnBlur: true } as any}
+        listeners={({ navigation, route }) => ({
+          tabPress: e => {
+            const state = navigation.getState();
+            const tabRoute = state.routes.find((r: any) => r.name === route.name);
+            if (navigation.isFocused() && tabRoute?.state?.index && tabRoute.state.index > 0) {
+              e.preventDefault();
+              (navigation as any).navigate(route.name, { screen: 'GroupList' });
+            }
+          },
+        })}
+      />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Perfil' }} />
     </Tab.Navigator>
   );

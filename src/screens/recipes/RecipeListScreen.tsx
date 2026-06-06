@@ -58,6 +58,9 @@ export default function RecipeListScreen() {
         )}
         <View style={{ flex: 1 }}>
           <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
+          {item.userId !== user?.id && item.author?.name ? (
+            <Text style={styles.cardAuthor} numberOfLines={1} ellipsizeMode="tail">por {item.author.name}</Text>
+          ) : null}
           <Text style={styles.cardSub} numberOfLines={1} ellipsizeMode="tail">{item.description || 'Sin descripción'}</Text>
           <View style={styles.tags}>
             <Text style={styles.tag}>⏱ {item.prepTime} min</Text>
@@ -150,6 +153,7 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 32, width: 48, textAlign: 'center' },
   thumb: { width: 56, height: 56, borderRadius: 10, backgroundColor: '#374151' },
   cardTitle: { color: '#F9FAFB', fontSize: 16, fontWeight: '700' },
+  cardAuthor: { color: '#E8735A', fontSize: 11, fontWeight: '600', marginTop: 1 },
   cardSub: { color: '#9CA3AF', fontSize: 13, marginTop: 2 },
   tags: { flexDirection: 'row', gap: 8, marginTop: 6, flexWrap: 'wrap' },
   tag: { color: '#D1D5DB', fontSize: 11, backgroundColor: '#374151', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },

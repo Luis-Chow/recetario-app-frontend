@@ -79,6 +79,11 @@ export default function RecipeDetailScreen() {
             <Text style={styles.heroEmoji}>🍽️</Text>
           )}
           <Text style={styles.heroTitle}>{recipe.title}</Text>
+          {recipe.author?.name ? (
+            <Text style={styles.heroAuthor}>
+              {recipe.userId === user?.id ? 'Tu receta' : `por ${recipe.author.name}`}
+            </Text>
+          ) : null}
           {recipe.description ? (
             <ExpandableText
               text={recipe.description}
@@ -163,6 +168,7 @@ const styles = StyleSheet.create({
   heroEmoji: { fontSize: 60, marginBottom: 12 },
   heroImage: { width: '100%', height: 220, borderRadius: 16, marginBottom: 16, backgroundColor: '#374151' },
   heroTitle: { color: '#F9FAFB', fontSize: 26, fontWeight: '800', textAlign: 'center' },
+  heroAuthor: { color: '#E8735A', fontSize: 13, fontWeight: '600', marginTop: 4, textAlign: 'center' },
   heroDesc: { color: '#9CA3AF', fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 20 },
   metaRow: { flexDirection: 'row', gap: 12, marginTop: 20 },
   metaCard: { flex: 1, backgroundColor: '#1F2937', borderRadius: 12, padding: 12, alignItems: 'center' },
