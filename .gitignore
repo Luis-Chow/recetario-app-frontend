@@ -51,3 +51,8 @@ checklist-pruebas.md
 
 # APK descargado localmente
 *.apk
+
+# Archivos temporales de agentes de pruebas
+attack*.mjs
+security_audit.json
+.attacks.json
