@@ -18,6 +18,7 @@ export default function RegisterScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const validate = () => {
@@ -34,11 +35,15 @@ export default function RegisterScreen({ navigation }: Props) {
   };
 
   const handleRegister = async () => {
+    setGeneralError('');
     if (!validate()) return;
     setLoading(true);
     const result = await register(name.trim(), email.trim(), password);
     setLoading(false);
-    if (result.error) Alert.alert('Error', result.error);
+    if (result.error) {
+      setGeneralError(result.error);
+      Alert.alert('Error', result.error);
+    }
   };
 
   return (
@@ -81,6 +86,11 @@ export default function RegisterScreen({ navigation }: Props) {
               maxLength={64}
               error={errors.confirm}
             />
+            {generalError ? (
+              <View style={styles.alertBox}>
+                <Text style={styles.alertText}>⚠️ {generalError}</Text>
+              </View>
+            ) : null}
             <TouchableOpacity style={styles.btn} onPress={handleRegister} disabled={loading}>
               <Text style={styles.btnText}>{loading ? 'Creando...' : 'Crear cuenta'}</Text>
             </TouchableOpacity>
@@ -102,6 +112,8 @@ const styles = StyleSheet.create({
   title: { color: '#F9FAFB', fontSize: 32, fontWeight: '800', textAlign: 'center' },
   subtitle: { color: '#9CA3AF', fontSize: 15, textAlign: 'center', marginBottom: 32, marginTop: 4 },
   card: { backgroundColor: '#1F2937', borderRadius: 16, padding: 20, marginBottom: 24 },
+  alertBox: { backgroundColor: '#4B2020', borderRadius: 10, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#7F1D1D' },
+  alertText: { color: '#FCA5A5', fontSize: 13, fontWeight: '600', textAlign: 'center' },
   btn: { backgroundColor: '#E8735A', borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   link: { color: '#9CA3AF', textAlign: 'center', fontSize: 14 },

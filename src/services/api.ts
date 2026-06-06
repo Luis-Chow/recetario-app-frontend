@@ -103,7 +103,8 @@ export const api = {
   updateGroup: (id: string, updates: Partial<Group>) =>
     request<GroupResponse>('PATCH', `/groups/${id}`, updates),
 
-  deleteGroup: (id: string) => request<{ ok: true }>('DELETE', `/groups/${id}`),
+  deleteGroup: (id: string, opts?: { keepRecipes?: boolean }) =>
+    request<{ ok: true }>('DELETE', `/groups/${id}${opts?.keepRecipes ? '?keepRecipes=true' : ''}`),
 
   removeRecipeFromGroup: (groupId: string, recipeId: string) =>
     request<RecipeResponse>('DELETE', `/groups/${groupId}/recipes/${recipeId}`),

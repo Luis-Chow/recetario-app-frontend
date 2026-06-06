@@ -28,22 +28,30 @@ export default function GroupListScreen() {
   }, [myGroups, search]);
 
   const handleDelete = (group: Group) => {
-    const recipeCount = recipes.filter(r => (r.groupIds || []).includes(group.id)).length;
-    const message = recipeCount > 0
-      ? `Esto eliminará el grupo "${group.name}" y también las ${recipeCount} receta(s) asociadas. ¿Continuar?`
-      : `¿Eliminar el grupo "${group.name}"?`;
-    Alert.alert('Eliminar grupo', message, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar', style: 'destructive', onPress: async () => {
-          try {
-            await deleteGroup(group.id);
-          } catch (e) {
-            Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo eliminar el grupo.');
-          }
-        }
-      },
-    ]);
+    const recipeCount = recipes.filter(r => (r.groupIds || []).includes(group.id) && r.userId === user?.id).length;
+    const doDelete = async (keepRecipes: boolean) => {
+      try {
+        await deleteGroup(group.id, { keepRecipes });
+      } catch (e) {
+        Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo eliminar el grupo.');
+      }
+    };
+    if (recipeCount === 0) {
+      Alert.alert('Eliminar grupo', `¿Eliminar el grupo "${group.name}"?`, [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar', style: 'destructive', onPress: () => doDelete(false) },
+      ]);
+      return;
+    }
+    Alert.alert(
+      'Eliminar grupo',
+      `El grupo "${group.name}" tiene ${recipeCount} receta(s) asociada(s). ¿Qué quieres hacer?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Solo el grupo', onPress: () => doDelete(true) },
+        { text: 'Grupo y recetas', style: 'destructive', onPress: () => doDelete(false) },
+      ]
+    );
   };
 
   const handleDragEnd = async (data: Group[]) => {

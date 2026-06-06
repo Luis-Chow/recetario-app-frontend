@@ -11,7 +11,7 @@ interface DataContextType {
   deleteRecipe: (id: string) => Promise<void>;
   addGroup: (group: Omit<Group, 'id' | 'createdAt' | 'userId'>) => Promise<Group>;
   updateGroup: (id: string, updates: Partial<Group>) => Promise<void>;
-  deleteGroup: (id: string) => Promise<void>;
+  deleteGroup: (id: string, opts?: { keepRecipes?: boolean }) => Promise<void>;
   removeRecipeFromGroup: (recipeId: string, groupId: string) => Promise<void>;
   reorderGroups: (ids: string[]) => Promise<void>;
   saveRecipe: (recipeId: string, groupIds: string[]) => Promise<void>;
@@ -76,10 +76,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setGroups(prev => prev.map(g => (g.id === id ? group : g)));
   };
 
-  const deleteGroup = async (id: string) => {
-    await api.deleteGroup(id);
+  const deleteGroup = async (id: string, opts?: { keepRecipes?: boolean }) => {
+    await api.deleteGroup(id, opts);
     setGroups(prev => prev.filter(g => g.id !== id));
-    // Borrar grupo borra sus recetas en cascada en el backend: refrescar para sincronizar
+    // El backend puede haber borrado recetas (cascade) o desasociado: refrescar siempre
     const r = await api.listRecipes();
     setRecipes(r.recipes);
   };
