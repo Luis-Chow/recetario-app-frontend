@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Image, Modal,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Image, Modal, FlatList, Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -178,6 +178,23 @@ export default function RecipeDetailScreen() {
           </View>
         </View>
 
+        {recipe.images && recipe.images.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📸 Galería</Text>
+            <FlatList
+              data={recipe.images}
+              keyExtractor={(_, i) => String(i)}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <Image source={{ uri: item }} style={styles.galleryImg} />
+              )}
+              ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
+              contentContainerStyle={{ paddingRight: 20 }}
+            />
+          </View>
+        )}
+
         {recipeGroups.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>📁 {isSaved ? 'Tus grupos' : 'Grupos'}</Text>
@@ -310,6 +327,7 @@ const styles = StyleSheet.create({
   },
   stepNumText: { color: '#fff', fontWeight: '800', fontSize: 13 },
   stepText: { color: '#D1D5DB', fontSize: 14, flex: 1, lineHeight: 21, paddingTop: 4 },
+  galleryImg: { width: Dimensions.get('window').width * 0.7, height: 200, borderRadius: 12, backgroundColor: '#374151' },
   groupsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   groupChip: { borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   groupChipText: { color: '#fff', fontWeight: '700', fontSize: 13 },

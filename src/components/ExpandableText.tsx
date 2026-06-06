@@ -12,11 +12,6 @@ interface Props {
   align?: 'left' | 'center';
 }
 
-/**
- * Muestra un texto recortado a `numberOfLines` con un enlace "Ver más / Ver menos".
- * Es el equivalente móvil del tooltip de escritorio: en lugar de hover, el usuario
- * toca para expandir el texto completo in-line.
- */
 export default function ExpandableText({
   text,
   numberOfLines = 3,
@@ -28,9 +23,6 @@ export default function ExpandableText({
   const [totalLines, setTotalLines] = useState(0);
   const [measured, setMeasured] = useState(false);
 
-  // En el primer render medimos cuántas líneas ocupa el texto completo
-  // (sin recorte). Después aplicamos el truncado y, si excede el límite,
-  // mostramos el botón para expandir.
   const onTextLayout = useCallback(
     (e: NativeSyntheticEvent<TextLayoutEventData>) => {
       if (!measured) {

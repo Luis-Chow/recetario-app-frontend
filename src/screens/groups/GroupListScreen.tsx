@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet,
   TextInput, Alert, FlatList,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
@@ -16,6 +16,8 @@ export default function GroupListScreen() {
   const { groups, recipes, deleteGroup, reorderGroups } = useData();
   const { user } = useAuth();
   const [search, setSearch] = useState('');
+  const insets = useSafeAreaInsets();
+  const listBottomPad = 80 + Math.max(insets.bottom, 12);
 
   const myGroups = useMemo(
     () => groups.filter(g => g.userId === user?.id),
@@ -150,7 +152,7 @@ export default function GroupListScreen() {
           data={filtered}
           keyExtractor={item => item.id}
           renderItem={renderStatic}
-          contentContainerStyle={{ padding: 16, gap: 12 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: listBottomPad, gap: 12 }}
           showsVerticalScrollIndicator={false}
         />
       ) : (
@@ -158,7 +160,7 @@ export default function GroupListScreen() {
           data={myGroups}
           keyExtractor={item => item.id}
           renderItem={renderDraggable}
-          contentContainerStyle={{ padding: 16, gap: 12 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: listBottomPad, gap: 12 }}
           onDragEnd={({ data }) => handleDragEnd(data)}
         />
       )}

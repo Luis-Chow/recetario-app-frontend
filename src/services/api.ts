@@ -112,6 +112,9 @@ export const api = {
   reorderGroups: (ids: string[]) =>
     request<GroupsResponse>('POST', '/groups/reorder', { ids }),
 
+  reorderRecipes: (ids: string[]) =>
+    request<{ ok: true }>('POST', '/recipes/reorder', { ids }),
+
   saveRecipe: (recipeId: string, groupIds: string[]) =>
     request<{ saved: { id: string; recipeId: string; groupIds: string[] } }>(
       'POST', `/recipes/${recipeId}/save`, { groupIds }

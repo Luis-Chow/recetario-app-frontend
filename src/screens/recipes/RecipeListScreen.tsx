@@ -3,9 +3,10 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   TextInput, Alert, Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { Recipe } from '../../types';
@@ -16,19 +17,50 @@ export default function RecipeListScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute<RouteProp<RouteParams, 'RecipeList'>>();
   const personal = route.params?.personal ?? false;
-  const { recipes, groups, deleteRecipe, unsaveRecipe } = useData();
+  const { recipes, groups, deleteRecipe, unsaveRecipe, reorderRecipes } = useData();
   const { user } = useAuth();
   const [search, setSearch] = React.useState('');
+  const insets = useSafeAreaInsets();
+  const listBottomPad = 80 + Math.max(insets.bottom, 12);
+
+  const ownedSorted = useMemo(() => {
+    if (!personal || !user) return [];
+    return recipes
+      .filter(r => r.userId === user.id)
+      .sort((a, b) => {
+        const ao = a.order || 0;
+        const bo = b.order || 0;
+        if (ao === 0 && bo === 0) return a.title.localeCompare(b.title);
+        if (ao === 0) return 1;
+        if (bo === 0) return -1;
+        return ao - bo;
+      });
+  }, [recipes, personal, user]);
+
+  const savedSorted = useMemo(() => {
+    if (!personal || !user) return [];
+    return recipes
+      .filter(r => r.isSaved && r.userId !== user.id)
+      .sort((a, b) => a.title.localeCompare(b.title));
+  }, [recipes, personal, user]);
 
   const filtered = useMemo(() => {
     let list = personal
-      ? recipes.filter(r => r.userId === user?.id || r.isSaved)
-      : recipes;
+      ? [...ownedSorted, ...savedSorted]
+      : [...recipes].sort((a, b) => a.title.localeCompare(b.title));
     if (search.trim()) {
       list = list.filter(r => r.title.toLowerCase().includes(search.toLowerCase()));
     }
-    return [...list].sort((a, b) => a.title.localeCompare(b.title));
-  }, [recipes, personal, user, search]);
+    return list;
+  }, [recipes, personal, search, ownedSorted, savedSorted]);
+
+  const handleOwnedDragEnd = async (data: Recipe[]) => {
+    try {
+      await reorderRecipes(data.map(r => r.id));
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo guardar el orden.');
+    }
+  };
 
   const handleDelete = (recipe: Recipe) => {
     Alert.alert('Eliminar receta', `¿Eliminar "${recipe.title}"?`, [
@@ -64,15 +96,17 @@ export default function RecipeListScreen() {
     );
   };
 
-  const renderItem = ({ item }: { item: Recipe }) => {
+  const renderCard = (item: Recipe, onLongPress?: () => void, isDragActive?: boolean) => {
     const itemGroups = groups.filter(g => (item.groupIds || []).includes(g.id));
     const isOwn = item.userId === user?.id;
     const isSaved = !!item.isSaved && !isOwn;
     return (
-    <View style={styles.card}>
+    <View style={[styles.card, isDragActive && styles.cardActive]}>
       <TouchableOpacity
         style={styles.cardLeft}
         onPress={() => navigation.navigate('RecipeDetail', { recipeId: item.id })}
+        onLongPress={onLongPress}
+        delayLongPress={250}
         activeOpacity={0.7}
       >
         {item.image ? (
@@ -160,6 +194,10 @@ export default function RecipeListScreen() {
         onChangeText={setSearch}
       />
 
+      {personal && !search.trim() && ownedSorted.length > 1 && (
+        <Text style={styles.hint}>Mantén presionada una receta para reordenarla</Text>
+      )}
+
       {filtered.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyIcon}>📭</Text>
@@ -167,12 +205,35 @@ export default function RecipeListScreen() {
             {search ? 'Sin resultados' : personal ? 'Aún no tienes recetas' : 'No hay recetas'}
           </Text>
         </View>
+      ) : personal && !search.trim() ? (
+        <DraggableFlatList
+          data={ownedSorted}
+          keyExtractor={item => item.id}
+          renderItem={({ item, drag, isActive }: RenderItemParams<Recipe>) =>
+            renderCard(item, drag, isActive)
+          }
+          onDragEnd={({ data }) => handleOwnedDragEnd(data)}
+          contentContainerStyle={{ padding: 16, paddingBottom: savedSorted.length > 0 ? 8 : listBottomPad, gap: 12 }}
+          ListFooterComponent={
+            savedSorted.length > 0 ? (
+              <View>
+                <Text style={styles.sectionHeader}>📌 Guardadas</Text>
+                {savedSorted.map(item => (
+                  <View key={item.id} style={{ marginBottom: 12 }}>
+                    {renderCard(item)}
+                  </View>
+                ))}
+                <View style={{ height: listBottomPad }} />
+              </View>
+            ) : null
+          }
+        />
       ) : (
         <FlatList
           data={filtered}
           keyExtractor={item => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={{ padding: 16, gap: 12 }}
+          renderItem={({ item }) => renderCard(item)}
+          contentContainerStyle={{ padding: 16, paddingBottom: listBottomPad, gap: 12 }}
           showsVerticalScrollIndicator={false}
         />
       )}
@@ -190,6 +251,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#1F2937', color: '#F9FAFB', borderRadius: 10,
     marginHorizontal: 16, marginBottom: 4, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14,
   },
+  hint: { color: '#6B7280', fontSize: 12, paddingHorizontal: 20, paddingTop: 4, fontStyle: 'italic' },
+  cardActive: { backgroundColor: '#374151', transform: [{ scale: 1.02 }] },
+  sectionHeader: { color: '#9CA3AF', fontSize: 13, fontWeight: '700', marginTop: 8, marginBottom: 8, letterSpacing: 0.5 },
   card: {
     backgroundColor: '#1F2937', borderRadius: 14, padding: 14,
     flexDirection: 'row', alignItems: 'center',

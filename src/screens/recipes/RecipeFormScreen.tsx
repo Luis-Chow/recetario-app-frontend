@@ -17,7 +17,6 @@ type RouteParams = { RecipeForm: { recipeId?: string } };
 const MAX_PREP_TIME = 1440; // 24 horas en minutos
 const MAX_SERVINGS = 100;
 
-// Deja solo dígitos y limita al máximo (evita letras, decimales, negativos y números absurdos).
 function sanitizeNumber(value: string, max: number): string {
   const digits = value.replace(/\D/g, '');
   if (digits === '') return '';
@@ -44,9 +43,13 @@ export default function RecipeFormScreen() {
   const [steps, setSteps] = useState<string[]>(existing?.steps || ['']);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(existing?.groupIds || []);
   const [image, setImage] = useState<string>(existing?.image || '');
+  const [images, setImages] = useState<string[]>(existing?.images || []);
   const [pickingImage, setPickingImage] = useState(false);
+  const [pickingExtra, setPickingExtra] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+
+  const MAX_EXTRA_IMAGES = 5;
 
   const handlePickImage = async () => {
     setPickingImage(true);
@@ -58,6 +61,26 @@ export default function RecipeFormScreen() {
     } finally {
       setPickingImage(false);
     }
+  };
+
+  const handleAddExtraImage = async () => {
+    if (images.length >= MAX_EXTRA_IMAGES) {
+      Alert.alert('Limite', `Maximo ${MAX_EXTRA_IMAGES} imagenes extra.`);
+      return;
+    }
+    setPickingExtra(true);
+    try {
+      const picked = await pickImageFromLibrary(800);
+      if (picked) setImages(prev => [...prev, picked.base64DataUri]);
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo seleccionar la imagen.');
+    } finally {
+      setPickingExtra(false);
+    }
+  };
+
+  const handleRemoveExtraImage = (idx: number) => {
+    setImages(prev => prev.filter((_, i) => i !== idx));
   };
 
   const userGroups = useMemo(
@@ -94,6 +117,7 @@ export default function RecipeFormScreen() {
         title: title.trim(),
         description: description.trim(),
         image,
+        images,
         prepTime: Math.min(Number(prepTime), MAX_PREP_TIME),
         servings: Math.min(Number(servings), MAX_SERVINGS),
         isPublic,
@@ -145,7 +169,7 @@ export default function RecipeFormScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📷 Imagen</Text>
+            <Text style={styles.sectionTitle}>📷 Imagen principal</Text>
             <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage} disabled={pickingImage}>
               {image ? (
                 <Image source={{ uri: image }} style={styles.imagePreview} />
@@ -167,6 +191,38 @@ export default function RecipeFormScreen() {
                 <Text style={styles.imageRemoveText}>Quitar imagen</Text>
               </TouchableOpacity>
             ) : null}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🖼️ Más fotos ({images.length}/{MAX_EXTRA_IMAGES})</Text>
+            <Text style={styles.helperText}>Resultado final, paso a paso o cualquier extra.</Text>
+            <View style={styles.extraImagesGrid}>
+              {images.map((img, idx) => (
+                <View key={idx} style={styles.extraImageWrap}>
+                  <Image source={{ uri: img }} style={styles.extraImage} />
+                  <TouchableOpacity
+                    style={styles.extraRemove}
+                    onPress={() => handleRemoveExtraImage(idx)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Text style={styles.extraRemoveText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              {images.length < MAX_EXTRA_IMAGES && (
+                <TouchableOpacity
+                  style={styles.extraAddBtn}
+                  onPress={handleAddExtraImage}
+                  disabled={pickingExtra}
+                >
+                  {pickingExtra ? (
+                    <ActivityIndicator color="#E8735A" />
+                  ) : (
+                    <Text style={styles.extraAddText}>+</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
           <View style={styles.section}>
@@ -333,6 +389,19 @@ const styles = StyleSheet.create({
   imagePlaceholderIcon: { fontSize: 32, marginBottom: 4 },
   imagePlaceholderText: { color: '#9CA3AF', fontSize: 13, fontWeight: '600' },
   imageRemove: { marginTop: 8, alignItems: 'center' },
+  extraImagesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
+  extraImageWrap: { width: 88, height: 88, borderRadius: 10, overflow: 'hidden' },
+  extraImage: { width: '100%', height: '100%' },
+  extraRemove: {
+    position: 'absolute', top: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.7)',
+    width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center',
+  },
+  extraRemoveText: { color: '#fff', fontSize: 13, fontWeight: '800' },
+  extraAddBtn: {
+    width: 88, height: 88, borderRadius: 10, borderWidth: 1, borderColor: '#374151',
+    borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center',
+  },
+  extraAddText: { color: '#E8735A', fontSize: 36, fontWeight: '300' },
   imageRemoveText: { color: '#EF4444', fontSize: 13, fontWeight: '600' },
   saveBtnLarge: {
     backgroundColor: '#E8735A', borderRadius: 12, paddingVertical: 16,

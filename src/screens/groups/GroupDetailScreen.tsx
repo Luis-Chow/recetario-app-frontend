@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, FlatList,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useData } from '../../context/DataContext';
@@ -16,6 +16,8 @@ export default function GroupDetailScreen() {
   const route = useRoute<RouteProp<RouteParams, 'GroupDetail'>>();
   const { groupId } = route.params;
   const { groups, recipes, deleteGroup, removeRecipeFromGroup } = useData();
+  const insets = useSafeAreaInsets();
+  const listBottomPad = 80 + Math.max(insets.bottom, 12);
 
   const group = groups.find(g => g.id === groupId);
 
@@ -149,7 +151,7 @@ export default function GroupDetailScreen() {
             data={groupRecipes}
             keyExtractor={item => item.id}
             renderItem={renderRecipe}
-            contentContainerStyle={{ gap: 10, paddingBottom: 20 }}
+            contentContainerStyle={{ gap: 10, paddingBottom: listBottomPad }}
             showsVerticalScrollIndicator={false}
           />
         )}
