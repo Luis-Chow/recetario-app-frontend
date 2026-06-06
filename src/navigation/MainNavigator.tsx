@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainTabParamList } from '../types';
 
 import RecipeListScreen from '../screens/recipes/RecipeListScreen';
@@ -51,13 +52,19 @@ function GroupsStack() {
 }
 
 export default function MainNavigator() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: ACCENT,
         tabBarInactiveTintColor: GRAY,
-        tabBarStyle: { backgroundColor: '#1F2937', borderTopColor: '#374151', paddingBottom: 5, height: 60 },
+        tabBarStyle: {
+          backgroundColor: '#1F2937',
+          borderTopColor: '#374151',
+          paddingBottom: 5 + insets.bottom,
+          height: 60 + insets.bottom,
+        },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         tabBarIcon: ({ size }) => {
           const icons: Record<string, string> = {
