@@ -213,7 +213,7 @@ export default function RecipeDetailScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🛒 Ingredientes</Text>
-          {recipe.ingredients.map((ing, i) => (
+          {(recipe.ingredients || []).map((ing, i) => (
             <View key={i} style={styles.ingredientRow}>
               <View style={styles.bullet} />
               <Text style={styles.ingredientText}>
@@ -226,7 +226,7 @@ export default function RecipeDetailScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📋 Pasos</Text>
-          {recipe.steps.map((step, i) => (
+          {(recipe.steps || []).map((step, i) => (
             <View key={i} style={styles.stepRow}>
               <View style={styles.stepNum}>
                 <Text style={styles.stepNumText}>{i + 1}</Text>

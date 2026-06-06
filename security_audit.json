@@ -1,0 +1,42 @@
+{
+  "attacks_passed": 18,
+  "summary": "Found 3 critical bugs in cascade delete and authorization: (1) 404/403 information leak on DELETE /groups/:id allows group enumeration, (2) Can create recipes with non-existent groupIds violating FK integrity, (3) Inconsistent error codes for authorization vs not found. Most cascade operations work correctly.",
+  "area": "Cascade delete e integridad referencial",
+  "attacks_run": 23,
+  "bugs": [
+    {
+      "actual": "404 Not Found (reveals that resource exists and only authorization issue)",
+      "proposed_fix": "Check authorization before querying database. Return 403 immediately if user_id doesn't match, not 404 when group not found",
+      "expected": "403 Forbidden or 401 Unauthorized (consistent with authorization failure)",
+      "attack_description": "DELETE request to other user's group returns 404 instead of 403/401, revealing resource existence",
+      "category": "security",
+      "severity": "important",
+      "reproduction": "1. User A creates group (ID: grpA_id)\n2. User B tries: DELETE /groups/{grpA_id}\n3. Result: 404 (WRONG - should be 403)\nCompare with: User B tries DELETE /groups/{fake_id} -> also 404\nAttacker can enumerate existing groups by status code",
+      "file_hint": "DELETE /groups/:id endpoint - missing authorization check before 404",
+      "id": "BUG-CASCADE-001"
+    },
+    {
+      "actual": "201 Created - recipe created with invalid groupIds that reference deleted/non-existent groups",
+      "proposed_fix": "Validate all groupIds in request exist and belong to current user before creating recipe. Use transaction to ensure consistency.",
+      "expected": "400 Bad Request or 404 Not Found (group doesn't exist)",
+      "attack_description": "Can create recipe with non-existent groupIds, violating referential integrity",
+      "category": "validation",
+      "severity": "important",
+      "reproduction": "1. User creates group (ID: grpA_id)\n2. Delete group: DELETE /groups/{grpA_id}\n3. Create recipe with deleted groupId: POST /recipes {groupIds: [grpA_id]}\n4. Result: 201 Created with orphaned groupIds\n5. Database now has recipe -> group reference pointing to non-existent group",
+      "file_hint": "POST /recipes endpoint - missing validation of groupIds existence",
+      "id": "BUG-CASCADE-002"
+    },
+    {
+      "actual": "404 for both non-existent and unauthorized groups",
+      "proposed_fix": "Always return 403 Forbidden for any DELETE request on resources not owned by user, regardless of existence",
+      "expected": "403 Forbidden for all unauthorized deletes (whether group exists or not)",
+      "attack_description": "DELETE request to non-existent group returns 404, same as unauthorized access, enabling user enumeration",
+      "category": "security",
+      "severity": "important",
+      "reproduction": "curl -H 'Authorization: Bearer TOKEN_USER_B' -X DELETE https://api/groups/GROUP_ID_OF_USER_A\nReturns 404 - attacker can't distinguish between 'doesn't exist' and 'not authorized'",
+      "file_hint": "DELETE /groups/:id endpoint",
+      "id": "BUG-CASCADE-003"
+    }
+  ],
+  "attacks_failed": 3
+}

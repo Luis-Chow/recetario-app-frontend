@@ -56,6 +56,7 @@ export default function LoginScreen({ navigation }: Props) {
               placeholder="tu@correo.com"
               keyboardType="email-address"
               autoCapitalize="none"
+              maxLength={100}
               error={errors.email}
             />
             <FormInput
@@ -65,6 +66,7 @@ export default function LoginScreen({ navigation }: Props) {
               placeholder="••••••••"
               secureTextEntry
               autoCapitalize="none"
+              maxLength={64}
               error={errors.password}
             />
             {generalError ? (
